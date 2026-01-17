@@ -1,7 +1,49 @@
 import logging
 from typing import Dict, Any, List
 from langchain_core.messages import SystemMessage
+import sqlite3
+import json
 
+class MemoryManager:
+    def __init__(self, db_path="agent_os.db"):
+        self.db_path = db_path
+        self._bootstrap_db()
+
+    def _bootstrap_db(self):
+        """Creates the database tables if they don't exist."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS agent_memory (
+                agent_id TEXT,
+                context_key TEXT,
+                context_value TEXT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+        conn.close()
+
+    def save_context(self, agent_id: str, key: str, value: Any):
+        """Saves memory to permanent storage."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO agent_memory (agent_id, context_key, context_value) VALUES (?, ?, ?)",
+            (agent_id, key, str(value))
+        )
+        conn.commit()
+        conn.close()
+        return "Memory stored in persistent DB."
+
+    def get_memory(self, agent_id: str):
+        """Retrieves all past memories for an agent."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT context_key, context_value FROM agent_memory WHERE agent_id = ?", (agent_id,))
+        rows = cursor.fetchall()
+        conn.close()
+        return rows
 # --- PILLAR 1: AGENT PERMISSIONS (The Sandbox) ---
 class PermissionEngine:
     """
