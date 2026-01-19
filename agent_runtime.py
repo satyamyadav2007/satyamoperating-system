@@ -30,15 +30,15 @@ class AgentOrchestrator:
         
         # 2. Setup LLM (OpenRouter configuration)
         self.llm = ChatOpenAI(
-            model="meta-llama/llama-3.3-70b-instruct:free",
-            openai_api_key=api_key,
-            base_url="https://openrouter.ai/api/v1",
-            default_headers={
-                "HTTP-Referer": "http://localhost:3000",
-                "X-Title": "AgentOS Platform"
-            }
-        )
-
+    # Ye model bilkul free hai aur bina balance ke chalega
+    model="google/gemini-2.0-flash-exp:free", 
+    openai_api_key=os.getenv("OPENROUTER_API_KEY"),
+    openai_api_base="https://openrouter.ai/api/v1",
+    default_headers={
+        "HTTP-Referer": "http://localhost:8000", # OpenRouter ke liye zaroori
+        "X-Title": "Agent OS Interface"
+    }
+)
         # 3. Map Tools for the Agent to use
         self.available_tools = {
             "read_email": AgentTools.read_emails,
